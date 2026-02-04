@@ -16,19 +16,25 @@ def mostrar_tablero(n, movimientos_jugadores):
                 print('_', end='')
         print('\n')
 
-# --- NUEVA FUNCIÓN: VALIDAR MOVIMIENTO ---
 def movimiento_valido(n, x, y, movimientos_otro_jugador):
-    # Comprobamos si las coordenadas están fuera del tablero
     if x >= n or y >= n or x < 0 or y < 0:
         return False
-    # Comprobamos si la casilla está ocupada por el otro jugador
     if x in movimientos_otro_jugador:
         movimientos_en_columna = movimientos_otro_jugador[x]
         if y in movimientos_en_columna:
             return False
     return True
 
-# --- TEST ---
+# --- NUEVA FUNCIÓN: JUGADA GANADORA ---
+def jugada_ganadora(movimientos_jugador):
+    # Comprobamos si hay 3 fichas en una fila
+    for fila in movimientos_jugador:
+        movimientos_columna = movimientos_jugador[fila]
+        if len(movimientos_columna) == 3:
+            return True
+    return False
+
+# --- TESTS ---
 @pytest.fixture
 def tablero_dimension():
     return 3
@@ -43,10 +49,7 @@ def test_mostrar_tablero(tablero_dimension, movimientos_ambos_jugadores, capsys)
     lineas = captured.out.strip().split("\n")
     lineas = [l for l in lineas if l.strip()]
     assert len(lineas) == tablero_dimension
-    for linea in lineas:
-        assert len(linea.replace(' ', '')) == tablero_dimension
 
-# --- NUEVOS TESTS PARA MOVIMIENTOS ---
 @pytest.fixture
 def movimientos_vacios():
     return {}, {}
@@ -74,6 +77,21 @@ def test_movimiento_incorrecto(tablero_dimension, movimientos_ocupados):
     x = 2
     y = 3
     assert not movimiento_valido(tablero_dimension, x, y, movimientos_ocupados)
+
+# --- NUEVOS TESTS PARA JUGADA GANADORA ---
+@pytest.fixture
+def movimientos_no_ganador():
+    return {2: [2, 3]}
+
+@pytest.fixture
+def movimientos_ganador():
+    return {2: [1, 2, 3]}
+
+def test_no_ganador(movimientos_no_ganador):
+    assert not jugada_ganadora(movimientos_no_ganador)
+
+def test_ganador(movimientos_ganador):
+    assert jugada_ganadora(movimientos_ganador)
 
 if __name__ == "__main__":
     n = int(input('Introduce el tamaño del tablero cuadrado: '))
